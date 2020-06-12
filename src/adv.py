@@ -125,7 +125,7 @@ while True:
             print("Invalid command")
 
     elif len(choice) == 2:
-        if (choice[0] == "get") or (choice[0] == "take"):
+        if (choice[0] == "get"):
             for item in chris.current_room.items:
                 if item.name == choice[1]:
                     chris.inventory.append(item)
