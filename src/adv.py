@@ -1,5 +1,6 @@
 from room import Room
 from player import Player
+from item import Item
 
 # Declare all the rooms
 
@@ -22,6 +23,14 @@ chamber! Sadly, it has already been completely emptied by
 earlier adventurers. The only exit is to the south."""),
 }
 
+# Create Items
+
+item = {
+    'weapon': Item("Weapon", """Generic looking sharp weapon for slaying monsters"""),
+
+    'shield': Item("Shield", """Large piece of wood used to protect yourself.""")
+}
+
 
 # Link rooms together
 
@@ -34,6 +43,11 @@ room['narrow'].w_to = room['foyer']
 room['narrow'].n_to = room['treasure']
 room['treasure'].s_to = room['narrow']
 
+#Add Items to rooms
+
+room['outside'].items.append(item['weapon'])
+room['foyer'].items.append(item['shield'])
+
 #
 # Main
 #
@@ -44,6 +58,8 @@ chris = Player("Chris", room['outside'])
 
 direction = ["n", "s", "e", "w"]
 
+choice = " "
+
 
 # Write a loop that:
 while True:
@@ -52,44 +68,77 @@ while True:
     print(f'\n{chris.current_room.name}')
     # * Prints the current description (the textwrap module might be useful here).
     print(chris.current_room.description)
+    if len(chris.current_room.items) > 0:
+        print("You see something:")
+        for item in chris.current_room.items:
+            print(item)
+    else:
+        print("This room has no items")
     # * Waits for user input and decides what to do.
-    choice = input(
-        f"Please choose which direction to go \n(n) - Go North\n(s) - Go South\n(w) - Go West\n(e) - Go East\n(q) - Quit Game: ")
+    choice = list(input("""\n(n) - Move North\n(s) - Move South\n(e) - Move East\n(w) - Move West\n(i) - Inventory\n(q) - Quit\n\nWhat would you like to do?: """).split())
     # If the user enters a cardinal direction, attempt to move to the room there.
     # Print an error message if the movement isn't allowed.
-    if choice == "n":
-        print("You moved North")
-        if chris.current_room.n_to:
-            chris.current_room = chris.current_room.n_to
+    if len(choice) == 1:
+        if choice[0] == "n":
+            print("You moved North")
+            if chris.current_room.n_to:
+                chris.current_room = chris.current_room.n_to
+            else:
+                print("You can't move in that direction.")
+
+        elif choice[0] == "s":
+            print("You moved South")
+            if chris.current_room.s_to:
+                chris.current_room = chris.current_room.s_to
+            else:
+                print("You can't move in that direction.")
+
+        elif choice[0] == "e":
+            print("You moved East")
+            if chris.current_room.e_to:
+                chris.current_room = chris.current_room.e_to
+            else:
+                print("You can't move in that direction.")
+
+        elif choice[0] == "w":
+            print("You moved West")
+            if chris.current_room.w_to:
+                chris.current_room = chris.current_room.w_to
+            else:
+                print("You can't move in that direction.")
+
+        elif (choice[0] == "i"):
+            print("\nInventory: ")
+            if len(chris.inventory) > 0:
+                for item in chris.inventory:
+                    print(item)
+            else:
+                print("You have no items.")
+
+        # If the user enters "q", quit the game.
+
+        elif choice[0] == "q":
+            print("See you next time!")
+            quit()
+
         else:
-            print("You can't move in that direction.")
+            print("Invalid command")
 
-    elif choice == "s":
-        print("You moved South")
-        if chris.current_room.s_to:
-            chris.current_room = chris.current_room.s_to
-        else:
-            print("You can't move in that direction.")
-
-    elif choice == "e":
-        print("You moved East")
-        if chris.current_room.e_to:
-            chris.current_room = chris.current_room.e_to
-        else:
-            print("You can't move in that direction.")
-
-    elif choice == "w":
-        print("You moved West")
-        if chris.current_room.w_to:
-            chris.current_room = chris.current_room.w_to
-        else:
-            print("You can't move in that direction.")
-
-    # If the user enters "q", quit the game.
-
-    elif choice == "q":
-        print("See you next time!")
-        quit()
-
-    else:
-        print("Invalid command")
+    elif len(choice) == 2:
+        if (choice[0] == "get") or (choice[0] == "take"):
+            for item in chris.current_room.items:
+                if item.name == choice[1]:
+                    chris.inventory.append(item)
+                    chris.current_room.items.remove(item)
+                    item.on_take()
+                else:
+                    print("No item in this room")
+                
+        elif choice[0] == "drop":
+            for item in chris.inventory:
+                if item.name == choice[1]:
+                    chris.current_room.items.append(item)
+                    chris.inventory.remove(item)
+                    item.on_drop()
+                else:
+                    print("That item is not in your posession.")
